@@ -168,13 +168,13 @@ def mostrar_bienvenida():
     print("\n" + "="*40)
     print("      ¡BIENVENIDO A ADIVINA EL NÚMERO!      ")
     print("="*40)
-    print("Pensé un número entre 1 y 100.")
+    print("Pensé un número entre 1 y 100.(Ingrese 0 para volver al menú)")
     print("Intentá adivinarlo. Te iré guiando si es mayor o menor.\n")
 
 def solicitar_numero() -> int:
     """Solicita un número al usuario y valida que sea un entero válido."""
     while True:
-        entrada = input("Ingresá tu número: ").strip()
+        entrada = input("Ingresá tu número(Ingrese 0 para volver al menú): ").strip()
         
         # Validación de datos: nos aseguramos de que sea un número entero
         if entrada.isdigit():
@@ -183,29 +183,93 @@ def solicitar_numero() -> int:
             print("Entrada inválida. Por favor, ingresá un número entero.")
 
 def jugar_adivina_numero():
-    """Función principal que contiene la lógica del juego."""
     mostrar_bienvenida()
-    
-    # Selección del número al azar entre 1 y 100
+
     numero_secreto = random.randint(1, 100)
     intentos = 0
     adivinado = False
-    
-    # Bucle principal del juego
+
     while not adivinado:
         numero_usuario = solicitar_numero()
+
+        # Volver al menú
+        if numero_usuario == 0:
+            print("\nVolviendo al menú principal...\n")
+            return
+
         intentos += 1
-        
+
         if numero_usuario < numero_secreto:
-            print(" El número secreto es MAYOR. ¡Intentá de nuevo!")
+            print("El número secreto es MAYOR. ¡Intentá de nuevo!")
         elif numero_usuario > numero_secreto:
-            print(" El número secreto es MENOR. ¡Intentá de nuevo!")
+            print("El número secreto es MENOR. ¡Intentá de nuevo!")
         else:
-            print(f"\n ¡EXCELENTE! Adivinaste el número secreto ({numero_secreto}).")
-            print(f" Te tomó un total de {intentos} intentos.")
+            print(f"\n¡EXCELENTE! Adivinaste el número secreto ({numero_secreto}).")
+            print(f"Te tomó un total de {intentos} intentos.")
             adivinado = True
-            
-    print("="*40 + "\n")
+
+    input("\nPresioná ENTER para volver al menú...")
+
+from random import randint
+
+def ahorcado():
+
+    palabras = ["panadero", "dinosaurio", "helipuerto", "tiburon"]
+
+    palabra = palabras[randint(0, len(palabras) - 1)]
+
+    vidas = 6
+    letras_correctas = []
+    letras_incorrectas = []
+
+    while vidas > 0:
+
+        print("\nPalabra:")
+
+        gano = True
+
+        for letra in palabra:
+            if letra in letras_correctas:
+                print(letra, end=" ")
+            else:
+                print("_", end=" ")
+                gano = False
+
+        print("\n")
+        print("Vidas:", vidas)
+        print("Incorrectas:", letras_incorrectas)
+
+        if gano:
+            print("\n¡¡GANASTE!!")
+            input("Presione ENTER para volver al menú...")
+            return
+
+        letra = input("Ingrese una letra (0 para volver al menú): ").lower()
+
+        # Volver al menú
+        if letra == "0":
+            print("\nVolviendo al menú principal...")
+            return
+
+        if len(letra) != 1:
+            print("Ingrese solo una letra.")
+            continue
+
+        if letra in letras_correctas or letra in letras_incorrectas:
+            print("Ya ingresaste esa letra.")
+            continue
+
+        if letra in palabra:
+            letras_correctas.append(letra)
+            print("¡Correcto!")
+        else:
+            letras_incorrectas.append(letra)
+            vidas -= 1
+            print("Incorrecto.")
+
+    print("\nPerdiste.")
+    print("La palabra era:", palabra)
+    input("Presione ENTER para volver al menú...")
 
 def menu():
     opcion = -1
@@ -217,7 +281,7 @@ def menu():
         print("1 - Ta-Te-Ti")
         print("2 - Cuantos conoces los numeros?")
         print("3 - Adivina el número")
-        print("4 - Juego 4")
+        print("4 - Ahorcado")
         print("0 - Salir")
 
         try:
@@ -236,8 +300,7 @@ def menu():
             jugar_adivina_numero()
 
         elif opcion == 4:
-            print("\nJuego en desarrollo...")
-            input("Presione ENTER para volver al menú.")
+            ahorcado()
 
         elif opcion == 0:
             print("\nGracias por jugar.")
