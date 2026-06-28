@@ -1,4 +1,80 @@
-def mostrar_tablero(tablero):
+import random
+from random import randint
+
+# =====================================================================
+# SYSTEMA DE GESTIÓN DE ARCHIVOS Y RANKINGS (PERSISTENCIA DE DATOS)
+# =====================================================================
+
+def guardar_puntaje(juego: str, nombre: str, puntaje: int):
+    """
+    Registra o actualiza el puntaje de un jugador en un archivo de texto.
+    
+    Si el jugador ya existe en el historial, acumula los puntos obtenidos.
+    Maneja la excepción si el archivo aún no ha sido creado.
+    """
+    archivo = juego + "_ranking.txt"
+    datos = {}
+
+    # Lectura del historial existente
+    try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            for linea in f:
+                # Separamos el nombre del puntaje usando la coma como delimitador
+                nom, pts = linea.strip().split(",")
+                datos[nom] = int(pts)
+    except FileNotFoundError:
+        # Si el archivo no existe, se ignora el error para crearlo al escribir
+        pass
+
+    # Actualización o inserción del nuevo puntaje en el diccionario
+    if nombre in datos:
+        datos[nombre] += puntaje
+    else:
+        datos[nombre] = puntaje
+
+    # Escritura y actualización del archivo de texto
+    with open(archivo, "w", encoding="utf-8") as f:
+        for nom, pts in datos.items():
+            f.write(f"{nom},{pts}\n")
+
+
+def mostrar_ranking(juego: str):
+    """
+    Lee los puntajes desde el archivo correspondiente, los ordena de mayor 
+    a menor e imprime en consola el Top 10 de jugadores.
+    """
+    archivo = juego + "_ranking.txt"
+
+    try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            datos = []
+            for linea in f:
+                nombre, puntaje = linea.strip().split(",")
+                datos.append((nombre, int(puntaje)))
+
+        # Ordenamos la lista de tuplas por el segundo elemento (puntaje) de forma descendente
+        datos.sort(key=lambda x: x[1], reverse=True)
+
+        print("\n===== RANKING =====")
+        puesto = 1
+        # Mostramos únicamente los primeros 10 puestos usando rebanado de listas (slicing)
+        for nombre, puntaje in datos[:10]:
+            print(f"{puesto}. {nombre} - {puntaje}")
+            puesto += 1
+
+    except FileNotFoundError:
+        print("\nTodavía no hay puntajes registrados para este juego.")
+
+
+# =====================================================================
+# JUEGO 1: TA-TE-TI
+# =====================================================================
+
+def mostrar_tablero(tablero: list):
+    """
+    Dibuja en la terminal la matriz unidimensional formateada como 
+    un tablero clásico bidimensional de 3x3.
+    """
     print()
     print(" ", tablero[0], "|", tablero[1], "|", tablero[2])
     print("---+---+---")
@@ -8,11 +84,16 @@ def mostrar_tablero(tablero):
     print()
 
 
-def verificar_ganador(tablero, jugador):
+def verificar_ganador(tablero: list, jugador: str) -> bool:
+    """
+    Compara las posiciones del tablero con las 8 combinaciones posibles de victoria.
+    Devuelve True si el jugador actual alineó tres de sus caracteres.
+    """
+    # Mapeo de índices de todas las líneas rectas posibles en el tablero
     combinaciones = [
-        [0,1,2], [3,4,5], [6,7,8],
-        [0,3,6], [1,4,7], [2,5,8],
-        [0,4,8], [2,4,6]
+        [0,1,2], [3,4,5], [6,7,8],  # Horizontales
+        [0,3,6], [1,4,7], [2,5,8],  # Verticales
+        [0,4,8], [2,4,6]            # Diagonales
     ]
 
     for g in combinaciones:
@@ -22,10 +103,14 @@ def verificar_ganador(tablero, jugador):
 
 
 def jugar_tateti():
+    """
+    Controla el ciclo principal del juego Ta-Te-Ti. Gestiona los turnos,
+    valida las entradas de las celdas y procesa las victorias o empates.
+    """
+    # Inicializamos el tablero con los números de guía visual para el usuario
     tablero = ["1","2","3",
                "4","5","6",
                "7","8","9"]
-
     jugador = "X"
     jugadas = 0
 
@@ -33,84 +118,100 @@ def jugar_tateti():
         print("\n========== TA-TE-TI ==========")
         mostrar_tablero(tablero)
 
+        # Validación contra ingresos de texto o errores de casillas vacías
         try:
             pos = int(input(f"Jugador {jugador}, elija una posición (1-9): ")) - 1
-        except:
-            print("Ingrese un número.")
+        except ValueError:
+            print("Error: Ingrese un número entero válido.")
             continue
 
+        # Validación de rango de matriz
         if pos < 0 or pos > 8:
-            print("Posición inválida.")
+            print("Posición inválida. Debe ser del 1 al 9.")
             continue
 
+        # Validación de superposición de fichas
         if tablero[pos] == "X" or tablero[pos] == "O":
             print("Esa casilla ya está ocupada.")
             continue
 
+        # Realizar jugada y cambiar estado del juego
         tablero[pos] = jugador
         jugadas += 1
 
         if verificar_ganador(tablero, jugador):
             mostrar_tablero(tablero)
             print(f"\n¡¡Ganó el jugador {jugador}!!")
+            nombre = input("Nombre del ganador: ").strip()
+            if not nombre: nombre = "Anónimo" # Evita guardar nombres vacíos
+            guardar_puntaje("tateti", nombre, 1)
             break
 
         if jugadas == 9:
             mostrar_tablero(tablero)
-            print("\nEmpate.")
+            print("\nEmpate. El tablero está lleno.")
             break
 
-        if jugador == "X":
-            jugador = "O"
-        else:
-            jugador = "X"
+        # Alternancia de turnos mediante condicional lógico
+        jugador = "O" if jugador == "X" else "X"
 
     input("\nPresione ENTER para volver al menú...")
 
-import random
 
-def cuantos_conoces_los_numeros():
+# =====================================================================
+# JUEGO 2: ¿CUÁNTO CONOCES LOS NÚMEROS?
+# =====================================================================
+
+def cuantos_conoces_los_numeros() -> tuple:
+    """
+    Juego de operaciones matemáticas aleatorias con 3 niveles de dificultad.
+    Evalúa la velocidad matemática del usuario y retorna sus datos de partida.
+    """
     puntos = 0
 
     print("\n********************************")
-    print("CUANTO CONOCES LOS NUMEROS?")
+    print("¿CUÁNTO CONOCES LOS NÚMEROS?")
     print("********************************")
 
+    # Bucle de validación para asegurar que el nombre no sea enviado en blanco
     nombre = input("\nIngresa tu nombre: ").strip()
     while not nombre:
-        print("El nombre no puede estar vacio.")
+        print("El nombre no puede estar vacío.")
         nombre = input("Ingresa tu nombre: ").strip()
 
-    print("\nElegi dificultad:")
-    print("1- Facil   (suma y resta, numeros hasta 10, 5 preguntas)")
-    print("2- Medio   (suma, resta y multiplicacion, hasta 50, 7 preguntas)")
-    print("3- Dificil (todas las operaciones, hasta 100, 10 preguntas)")
+    print("\nElegí dificultad:")
+    print("1- Fácil   (suma y resta, números hasta 10, 5 preguntas)")
+    print("2- Medio   (suma, resta y multiplicación, hasta 50, 7 preguntas)")
+    print("3- Difícil (todas las operaciones, hasta 100, 10 preguntas)")
 
+    # Configuración del entorno matemático según dificultad elegida
     while True:
-        dificultad = input("Opcion: ").strip()
+        dificultad = input("Opción: ").strip()
         if dificultad == "1":
-            maximo      = 10
+            maximo = 10
             operaciones = ["+", "-"]
-            cantidad    = 5
+            cantidad = 5
             break
         elif dificultad == "2":
-            maximo      = 50
+            maximo = 50
             operaciones = ["+", "-", "*"]
-            cantidad    = 7
+            cantidad = 7
             break
         elif dificultad == "3":
-            maximo      = 100
+            maximo = 100
             operaciones = ["+", "-", "*", "/"]
-            cantidad    = 10
+            cantidad = 10
             break
         else:
-            print("Opcion invalida. Ingresa 1, 2 o 3.")
+            print("Opción inválida. Ingresa 1, 2 o 3.")
 
+    # Ciclo de preguntas dinámicas
     for i in range(cantidad):
-        num1      = random.randint(1, maximo)
-        num2      = random.randint(1, maximo)
+        num1 = random.randint(1, maximo)
+        num2 = random.randint(1, maximo)
         operacion = random.choice(operaciones)
 
+        # Resolución exacta del cálculo real en background
         if operacion == "+":
             resultado = num1 + num2
         elif operacion == "-":
@@ -118,71 +219,86 @@ def cuantos_conoces_los_numeros():
         elif operacion == "*":
             resultado = num1 * num2
         else:
-            num1      = num1 * num2
+            # Para evitar decimales infinitos, transformamos en una división exacta múltiplo
+            num1 = num1 * num2
             resultado = num1 // num2
 
+        # El juego decide al azar si le va a mostrar la respuesta correcta o una alterada
         correcta = random.choice([True, False])
 
         if correcta:
             respuesta_mostrada = resultado
         else:
-            desvio             = random.randint(1, 10) * random.choice([1, -1])
+            desvio = random.randint(1, 10) * random.choice([1, -1])
             respuesta_mostrada = resultado + desvio
             if respuesta_mostrada == resultado:
                 respuesta_mostrada += 1
 
         print(f"\nPregunta {i+1} de {cantidad}")
-        print(f"Cuanto es {num1} {operacion} {num2}?")
-        print(f"Respuesta: {respuesta_mostrada}")
+        print(f"¿Cuánto es {num1} {operacion} {num2}?")
+        print(f"Respuesta propuesta: {respuesta_mostrada}")
         print("1- Es correcto")
         print("2- Es incorrecto")
         print("3- Salir")
 
         while True:
-            opcion = input("Elegi: ").strip()
+            opcion = input("Elegí: ").strip()
             if opcion in ["1", "2", "3"]:
                 break
-            print("Opcion invalida. Ingresa 1, 2 o 3.")
+            print("Opción inválida. Ingresa 1, 2 o 3.")
 
         if opcion == "3":
             print("Saliste del juego.")
             break
 
+        # Verificación lógica de la respuesta del usuario frente al entorno real
         if (opcion == "1" and correcta) or (opcion == "2" and not correcta):
-            print("Correcto! +10 puntos")
+            print("¡Correcto! +10 puntos")
             puntos += 10
         else:
             if correcta:
-                print(f"Incorrecto. La respuesta {respuesta_mostrada} era correcta.")
+                print(f"Incorrecto. La respuesta {respuesta_mostrada} SÍ era correcta.")
             else:
                 print(f"Incorrecto. La respuesta {respuesta_mostrada} era falsa. El resultado real es {resultado}.")
 
     print("\nJuego terminado")
-    print(f"Puntaje final: {puntos} pts")
+    print(f"Puntaje final de {nombre}: {puntos} pts")
     return nombre, puntos
 
-import random
+
+# =====================================================================
+# JUEGO 3: ADIVINA EL NÚMERO
+# =====================================================================
 
 def mostrar_bienvenida():
-    """Muestra el mensaje inicial y las reglas del juego."""
+    """Muestra la interfaz inicial visual y las reglas de Adivina el Número."""
     print("\n" + "="*40)
     print("      ¡BIENVENIDO A ADIVINA EL NÚMERO!      ")
     print("="*40)
-    print("Pensé un número entre 1 y 100.(Ingrese 0 para volver al menú)")
+    print("Pensé un número entre 1 y 100.")
     print("Intentá adivinarlo. Te iré guiando si es mayor o menor.\n")
 
+
 def solicitar_numero() -> int:
-    """Solicita un número al usuario y valida que sea un entero válido."""
+    """
+    Solicita un número al usuario y fuerza la validación mediante bucle 
+    hasta garantizar que ingresó un número entero válido o el comando de escape 0.
+    """
     while True:
-        entrada = input("Ingresá tu número(Ingrese 0 para volver al menú): ").strip()
+        entrada = input("Ingresá tu número (O ingresá 0 para abandonar): ").strip()
         
-        # Validación de datos: nos aseguramos de que sea un número entero
+        # Validación robusta de tipo de dato
         if entrada.isdigit():
             return int(entrada)
         else:
             print("Entrada inválida. Por favor, ingresá un número entero.")
 
+
 def jugar_adivina_numero():
+    """
+    Ciclo de juego de adivinación numérica interactiva.
+    Calcula un puntaje decreciente según la cantidad de intentos fallidos.
+    """
     mostrar_bienvenida()
 
     numero_secreto = random.randint(1, 100)
@@ -192,7 +308,7 @@ def jugar_adivina_numero():
     while not adivinado:
         numero_usuario = solicitar_numero()
 
-        # Volver al menú
+        # Ruta de salida anticipada hacia el menú
         if numero_usuario == 0:
             print("\nVolviendo al menú principal...\n")
             return
@@ -206,16 +322,30 @@ def jugar_adivina_numero():
         else:
             print(f"\n¡EXCELENTE! Adivinaste el número secreto ({numero_secreto}).")
             print(f"Te tomó un total de {intentos} intentos.")
+            
+            nombre = input("Ingrese su nombre para el ranking: ").strip()
+            if not nombre: nombre = "Jugador S/N"
+            
+            # Algoritmo de ponderación: premia al que adivinó con menos intentos
+            puntaje = max(0, 100 - intentos * 10)
+
+            guardar_puntaje("adivina", nombre, puntaje)
             adivinado = True
 
     input("\nPresioná ENTER para volver al menú...")
 
-from random import randint
+
+# =====================================================================
+# JUEGO 4: EL AHORCADO
+# =====================================================================
 
 def ahorcado():
-
+    """
+    Juego del ahorcado tradicional procesado a través del manejo de listas de letras.
+    Finaliza al quedarse sin vidas o al completar los caracteres del string aleatorio.
+    """
     palabras = ["panadero", "dinosaurio", "helipuerto", "tiburon"]
-
+    # Selección de palabra por índice dinámico basado en la longitud del vector
     palabra = palabras[randint(0, len(palabras) - 1)]
 
     vidas = 6
@@ -223,90 +353,142 @@ def ahorcado():
     letras_incorrectas = []
 
     while vidas > 0:
-
         print("\nPalabra:")
-
         gano = True
 
+        # Renderizado interactivo de la palabra oculta
         for letra in palabra:
             if letra in letras_correctas:
                 print(letra, end=" ")
             else:
                 print("_", end=" ")
-                gano = False
+                gano = False  # Si falta al menos una letra, no puede ganar todavía
 
         print("\n")
-        print("Vidas:", vidas)
-        print("Incorrectas:", letras_incorrectas)
+        print("Vidas restantes:", vidas)
+        print("Letras incorrectas probadas:", letras_incorrectas)
 
         if gano:
             print("\n¡¡GANASTE!!")
+            nombre = input("Ingrese su nombre para el registro: ").strip()
+            if not nombre: nombre = "Superviviente"
+            puntaje = vidas * 10
+            guardar_puntaje("ahorcado", nombre, puntaje)
             input("Presione ENTER para volver al menú...")
             return
 
-        letra = input("Ingrese una letra (0 para volver al menú): ").lower()
+        letra = input("Ingrese una letra (O ingrese 0 para abandonar): ").lower().strip()
 
-        # Volver al menú
         if letra == "0":
             print("\nVolviendo al menú principal...")
             return
 
-        if len(letra) != 1:
-            print("Ingrese solo una letra.")
+        # Control de robustez ante entradas vacías o múltiples caracteres (ej: palabras enteras)
+        if len(letra) != 1 or not letra.isalpha():
+            print("Error: Ingrese estrictamente una sola letra.")
             continue
 
+        # Evita penalizar al usuario si vuelve a ingresar caracteres repetidos
         if letra in letras_correctas or letra in letras_incorrectas:
-            print("Ya ingresaste esa letra.")
+            print("Ya ingresaste esa letra anteriormente. Intentá otra.")
             continue
 
+        # Evaluación lógica de coincidencia
         if letra in palabra:
             letras_correctas.append(letra)
             print("¡Correcto!")
         else:
             letras_incorrectas.append(letra)
             vidas -= 1
-            print("Incorrecto.")
+            print("Incorrecto. Perdiste una vida.")
 
-    print("\nPerdiste.")
-    print("La palabra era:", palabra)
+    # Fin del juego por pérdida de recursos (vidas = 0)
+    print("\nPerdiste por completo.")
+    print("La palabra oculta era:", palabra)
+    nombre = input("Ingrese su nombre para dejar registro: ").strip()
+    if not nombre: nombre = "Jugador Sin Vidas"
+    guardar_puntaje("ahorcado", nombre, 0)
     input("Presione ENTER para volver al menú...")
 
+
+# =====================================================================
+# ENTORNO INTERFACES DE MENÚS (CONTROLADOR CENTRAL)
+# =====================================================================
+
+def menu_rankings():
+    """
+    Submenú interactivo para navegar las estadísticas históricas 
+    guardadas de cada módulo de juego.
+    """
+    while True:
+        print("\n===== RANKINGS HISTÓRICOS =====")
+        print("1 - Ta-Te-Ti")
+        print("2 - Cuánto conoces los números")
+        print("3 - Adivina el número")
+        print("4 - Ahorcado")
+        print("0 - Volver al Menú Principal")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+            mostrar_ranking("tateti")
+        elif opcion == "2":
+            mostrar_ranking("numeros")
+        elif opcion == "3":
+            mostrar_ranking("adivina")
+        elif opcion == "4":
+            mostrar_ranking("ahorcado")
+        elif opcion == "0":
+            break # Rompe el ciclo interno regresando al flujo del menú principal
+        else:
+            print("Opción incorrecta. Ingrese un número del 0 al 4.")
+
+        input("\nPresione ENTER para continuar...")
+
+
 def menu():
+    """
+    Función de arranque del programa central. Administra el bucle máster
+    y redirige el flujo de ejecución hacia los diferentes módulos de juego.
+    """
     opcion = -1
 
     while opcion != 0:
         print("\n==============================")
-        print("      Bienvenido  ")
+        print("       JUEGOS                  ")
         print("==============================")
         print("1 - Ta-Te-Ti")
-        print("2 - Cuantos conoces los numeros?")
+        print("2 - ¿Cuánto conoces los números?")
         print("3 - Adivina el número")
         print("4 - Ahorcado")
-        print("0 - Salir")
+        print("5 - Ver Tabla de Rankings")
+        print("0 - Salir del Sistema")
 
+        # Robustez contra ingresos maliciosos no numéricos en el menú raíz
         try:
             opcion = int(input("Seleccione una opción: "))
-        except:
-            print("Ingrese un número válido.")
+        except ValueError:
+            print("Error: Por favor, ingrese un número entero válido.")
             continue
 
+        # Redirección selectiva estructurada
         if opcion == 1:
             jugar_tateti()
-
         elif opcion == 2:
-            cuantos_conoces_los_numeros()
-
+            nombre, puntos = cuantos_conoces_los_numeros()
+            guardar_puntaje("numeros", nombre, puntos)
         elif opcion == 3:
             jugar_adivina_numero()
-
         elif opcion == 4:
             ahorcado()
-
+        elif opcion == 5:
+            menu_rankings()
         elif opcion == 0:
-            print("\nGracias por jugar.")
-
+            print("\nGracias por utilizar nuestra plataforma. ¡Hasta luego!")
         else:
-            print("Opción incorrecta.")
+            print("Opción incorrecta. Elija un número de las opciones mostradas.")
 
 
-menu()
+# Punto de entrada de ejecución nativo del Script
+if __name__ == "__main__":
+    menu()
