@@ -1,3 +1,73 @@
+def mostrar_tablero(tablero):
+    print()
+    print(" ", tablero[0], "|", tablero[1], "|", tablero[2])
+    print("---+---+---")
+    print(" ", tablero[3], "|", tablero[4], "|", tablero[5])
+    print("---+---+---")
+    print(" ", tablero[6], "|", tablero[7], "|", tablero[8])
+    print()
+
+
+def verificar_ganador(tablero, jugador):
+    combinaciones = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+    ]
+
+    for c in combinaciones:
+        if tablero[c[0]] == tablero[c[1]] == tablero[c[2]] == jugador:
+            return True
+    return False
+
+
+def jugar_tateti():
+    tablero = ["1","2","3",
+               "4","5","6",
+               "7","8","9"]
+
+    jugador = "X"
+    jugadas = 0
+
+    while True:
+        print("\n========== TA-TE-TI ==========")
+        mostrar_tablero(tablero)
+
+        try:
+            pos = int(input(f"Jugador {jugador}, elija una posición (1-9): ")) - 1
+        except:
+            print("Ingrese un número.")
+            continue
+
+        if pos < 0 or pos > 8:
+            print("Posición inválida.")
+            continue
+
+        if tablero[pos] == "X" or tablero[pos] == "O":
+            print("Esa casilla ya está ocupada.")
+            continue
+
+        tablero[pos] = jugador
+        jugadas += 1
+
+        if verificar_ganador(tablero, jugador):
+            mostrar_tablero(tablero)
+            print(f"\n¡¡Ganó el jugador {jugador}!!")
+            break
+
+        if jugadas == 9:
+            mostrar_tablero(tablero)
+            print("\nEmpate.")
+            break
+
+        if jugador == "X":
+            jugador = "O"
+        else:
+            jugador = "X"
+
+    input("\nPresione ENTER para volver al menú...")
+
+
 def menu():
     opcion = -1
 
@@ -5,7 +75,7 @@ def menu():
         print("\n==============================")
         print("      Bienvenido   ")
         print("==============================")
-        print("1 - Juego 1")
+        print("1 - Ta-Te-Ti")
         print("2 - Juego 2")
         print("3 - Juego 3")
         print("4 - Juego 4")
@@ -18,8 +88,7 @@ def menu():
             continue
 
         if opcion == 1:
-            print("\nJuego en desarrollo...")
-            input("Presione ENTER para volver al menú.")
+            jugar_tateti()
 
         elif opcion == 2:
             print("\nJuego en desarrollo...")
