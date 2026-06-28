@@ -67,7 +67,61 @@ def jugar_tateti():
 
     input("\nPresione ENTER para volver al menú...")
 
+from random import randint
 
+def ahorcado():
+
+    palabras = ["panadero", "dinosaurio", "helipuerto", "tiburon"]
+
+    palabra = palabras[randint(0, len(palabras) - 1)]
+
+    vidas = 6
+    letras_correctas = []
+    letras_incorrectas = []
+
+    while vidas > 0:
+
+        print("\nPalabra:")
+
+        gano = True
+
+        for letra in palabra:
+            if letra in letras_correctas:
+                print(letra, end=" ")
+            else:
+                print("_", end=" ")
+                gano = False
+
+        print("\n")
+        print("Vidas:", vidas)
+        print("Incorrectas:", letras_incorrectas)
+
+        if gano:
+            print("\n¡¡GANASTE!!")
+            return
+
+        letra = input("Ingrese una letra: ").lower()
+
+        if len(letra) != 1:
+            print("Ingrese solo una letra.")
+            continue
+
+        if letra in letras_correctas or letra in letras_incorrectas:
+            print("Ya ingresaste esa letra.")
+            continue
+
+        if letra in palabra:
+            letras_correctas.append(letra)
+            print("¡Correcto!")
+        else:
+            letras_incorrectas.append(letra)
+            vidas -= 1
+            print("Incorrecto.")
+
+    print("\nPerdiste.")
+    print("La palabra era:", palabra)
+
+ahorcado()
 def menu():
     opcion = -1
 
@@ -77,7 +131,7 @@ def menu():
         print("==============================")
         print("1 - Ta-Te-Ti")
         print("2 - Juego 2")
-        print("3 - Juego 3")
+        print("3 - ahorcado")
         print("4 - Juego 4")
         print("0 - Salir")
 
@@ -95,8 +149,7 @@ def menu():
             input("Presione ENTER para volver al menú.")
 
         elif opcion == 3:
-            print("\nJuego en desarrollo...")
-            input("Presione ENTER para volver al menú.")
+          ahorcado()
 
         elif opcion == 4:
             print("\nJuego en desarrollo...")
