@@ -161,6 +161,52 @@ def cuantos_conoces_los_numeros():
     print(f"Puntaje final: {puntos} pts")
     return nombre, puntos
 
+import random
+
+def mostrar_bienvenida():
+    """Muestra el mensaje inicial y las reglas del juego."""
+    print("\n" + "="*40)
+    print("      ¡BIENVENIDO A ADIVINA EL NÚMERO!      ")
+    print("="*40)
+    print("Pensé un número entre 1 y 100.")
+    print("Intentá adivinarlo. Te iré guiando si es mayor o menor.\n")
+
+def solicitar_numero() -> int:
+    """Solicita un número al usuario y valida que sea un entero válido."""
+    while True:
+        entrada = input("Ingresá tu número: ").strip()
+        
+        # Validación de datos: nos aseguramos de que sea un número entero
+        if entrada.isdigit():
+            return int(entrada)
+        else:
+            print("Entrada inválida. Por favor, ingresá un número entero.")
+
+def jugar_adivina_numero():
+    """Función principal que contiene la lógica del juego."""
+    mostrar_bienvenida()
+    
+    # Selección del número al azar entre 1 y 100
+    numero_secreto = random.randint(1, 100)
+    intentos = 0
+    adivinado = False
+    
+    # Bucle principal del juego
+    while not adivinado:
+        numero_usuario = solicitar_numero()
+        intentos += 1
+        
+        if numero_usuario < numero_secreto:
+            print(" El número secreto es MAYOR. ¡Intentá de nuevo!")
+        elif numero_usuario > numero_secreto:
+            print(" El número secreto es MENOR. ¡Intentá de nuevo!")
+        else:
+            print(f"\n ¡EXCELENTE! Adivinaste el número secreto ({numero_secreto}).")
+            print(f" Te tomó un total de {intentos} intentos.")
+            adivinado = True
+            
+    print("="*40 + "\n")
+
 def menu():
     opcion = -1
 
@@ -169,8 +215,8 @@ def menu():
         print("      Bienvenido  ")
         print("==============================")
         print("1 - Ta-Te-Ti")
-        print("2 - Juego 2")
-        print("3 - Juego 3")
+        print("2 - Cuantos conoces los numeros?")
+        print("3 - Adivina el número")
         print("4 - Juego 4")
         print("0 - Salir")
 
@@ -187,8 +233,7 @@ def menu():
             cuantos_conoces_los_numeros()
 
         elif opcion == 3:
-            print("\nJuego en desarrollo...")
-            input("Presione ENTER para volver al menú.")
+            jugar_adivina_numero()
 
         elif opcion == 4:
             print("\nJuego en desarrollo...")
