@@ -1,0 +1,43 @@
+def menu():
+    opcion = -1
+
+    while opcion != 0:
+        print("\n==============================")
+        print("      Bienvenido   ")
+        print("==============================")
+        print("1 - Juego 1")
+        print("2 - Juego 2")
+        print("3 - Juego 3")
+        print("4 - Juego 4")
+        print("0 - Salir")
+
+        try:
+            opcion = int(input("Seleccione una opción: "))
+        except:
+            print("Ingrese un número válido.")
+            continue
+
+        if opcion == 1:
+            print("\nJuego en desarrollo...")
+            input("Presione ENTER para volver al menú.")
+
+        elif opcion == 2:
+            print("\nJuego en desarrollo...")
+            input("Presione ENTER para volver al menú.")
+
+        elif opcion == 3:
+            print("\nJuego en desarrollo...")
+            input("Presione ENTER para volver al menú.")
+
+        elif opcion == 4:
+            print("\nJuego en desarrollo...")
+            input("Presione ENTER para volver al menú.")
+
+        elif opcion == 0:
+            print("\nGracias por jugar.")
+
+        else:
+            print("Opción incorrecta.")
+
+
+menu()
